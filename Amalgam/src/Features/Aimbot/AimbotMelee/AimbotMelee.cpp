@@ -51,7 +51,7 @@ std::vector<Target_t> CAimbotMelee::GetTargets(CTFPlayer* pLocal, CTFWeaponBase*
 				continue;
 
 			bool bTeam = pEntity->m_iTeamNum() == pLocal->m_iTeamNum();
-			if (bTeam && (bWrench && !AimFriendlyBuilding(pEntity->As<CBaseObject>()) || bSapper && !pEntity->As<CBaseObject>()->m_bHasSapper()))
+			if (bTeam && (bWrench && (pLocal->GetAmmoCount(3) <= 0 || !AimFriendlyBuilding(pEntity->As<CBaseObject>())) || bSapper && !pEntity->As<CBaseObject>()->m_bHasSapper()))
 				continue;
 
 			Vec3 vPos = pEntity->GetCenter();
