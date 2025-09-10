@@ -74,7 +74,7 @@ void CVisuals::ProjectileTrace(CTFPlayer* pPlayer, CTFWeaponBase* pWeapon, const
 	CGameTrace trace = {};
 	CTraceFilterCollideable filter = {};
 	filter.pSkip = pPlayer;
-	int nMask = MASK_SOLID;
+	int nMask = MASK_SOLID | (pWeapon->GetWeaponID() == TF_WEAPON_LUNCHBOX ? CONTENTS_DETAIL : 0);
 	F::ProjSim.SetupTrace(filter, nMask, pWeapon, 0, bQuick);
 
 	Vec3* pNormal = nullptr;
@@ -152,7 +152,7 @@ void CVisuals::ProjectileTrace(CTFPlayer* pPlayer, CTFWeaponBase* pWeapon, const
 
 			auto vAngles = Math::CalcAngle(trace.startpos, trace.endpos);
 			Vec3 vForward; Math::AngleVectors(vAngles, &vForward);
-			SDK::Trace(trace.endpos, trace.endpos - vForward * 500.f, MASK_SOLID, &filter, &cameraTrace);
+			SDK::Trace(trace.endpos, trace.endpos - vForward * 500.f, nMask, &filter, &cameraTrace);
 
 			F::CameraWindow.m_bShouldDraw = true;
 			F::CameraWindow.m_vCameraOrigin = cameraTrace.endpos;

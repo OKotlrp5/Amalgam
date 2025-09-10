@@ -33,15 +33,11 @@ std::vector<Target_t> CAimbotProjectile::GetTargets(CTFPlayer* pLocal, CTFWeapon
 		switch (pWeapon->GetWeaponID())
 		{
 		case TF_WEAPON_CROSSBOW:
-			if (Vars::Aimbot::Healing::AutoArrow.Value)
-				eGroupType = eGroupType != EGroupType::GROUP_INVALID ? EGroupType::PLAYERS_ALL : EGroupType::PLAYERS_TEAMMATES;
-			break;
+			eGroupType = (Vars::Aimbot::Healing::AutoArrow.Value) ? EGroupType::PLAYERS_ALL : (eGroupType != EGroupType::GROUP_INVALID ? eGroupType : EGroupType::PLAYERS_TEAMMATES); break;
 		case TF_WEAPON_LUNCHBOX:
-			if (Vars::Aimbot::Healing::AutoSandvich.Value)
-				eGroupType = EGroupType::PLAYERS_TEAMMATES;
-			break;
+			eGroupType = Vars::Aimbot::Healing::AutoSandvich.Value ? EGroupType::PLAYERS_ENEMIES : EGroupType::PLAYERS_TEAMMATES; break;
 		}
-		bool bHeal = pWeapon->GetWeaponID() == TF_WEAPON_CROSSBOW || pWeapon->GetWeaponID() == TF_WEAPON_LUNCHBOX;
+		bool bHeal = (pWeapon->GetWeaponID() == TF_WEAPON_CROSSBOW) || (pWeapon->GetWeaponID() == TF_WEAPON_LUNCHBOX && !Vars::Aimbot::Healing::AutoSandvich.Value);
 
 		for (auto pEntity : H::Entities.GetGroup(eGroupType))
 		{
@@ -49,7 +45,7 @@ std::vector<Target_t> CAimbotProjectile::GetTargets(CTFPlayer* pLocal, CTFWeapon
 				continue;
 
 			bool bTeam = pEntity->m_iTeamNum() == pLocal->m_iTeamNum();
-			if (bTeam && bHeal)
+			if ((bTeam && bHeal) || (!bTeam && pWeapon->GetWeaponID() == TF_WEAPON_LUNCHBOX && Vars::Aimbot::Healing::AutoSandvich.Value))
 			{
 				if (pEntity->As<CTFPlayer>()->m_iHealth() >= pEntity->As<CTFPlayer>()->GetMaxHealth()
 					|| Vars::Aimbot::Healing::HealPriority.Value == Vars::Aimbot::Healing::HealPriorityEnum::FriendsOnly && !H::Entities.IsFriend(pEntity->entindex()) && !H::Entities.InParty(pEntity->entindex()))
@@ -1151,7 +1147,7 @@ bool CAimbotProjectile::TestAngle(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, Tar
 	filter.pSkip = bSplash ? tTarget.m_pEntity : pLocal;
 	filter.iPlayer = bSplash ? PLAYER_NONE : PLAYER_DEFAULT;
 	filter.bMisc = !bSplash;
-	int nMask = MASK_SOLID;
+	int nMask = MASK_SOLID | (pWeapon->GetWeaponID() == TF_WEAPON_LUNCHBOX ? CONTENTS_DETAIL : 0);
 	if (!bSplash && F::AimbotGlobal.FriendlyFire())
 	{
 		switch (pWeapon->GetWeaponID())
