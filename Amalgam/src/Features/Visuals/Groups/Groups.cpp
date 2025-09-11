@@ -15,6 +15,9 @@ static inline bool ShouldTargetTeam(Group_t& tGroup, int iBit, CBaseEntity* pEnt
 		return false;
 	}
 
+	if (pEntity == pLocal)
+		return tGroup.m_iConditions & ConditionsEnum::Local;
+
 	if (pEntity->m_iTeamNum() == TF_TEAM_BLUE && !(tGroup.m_iConditions & ConditionsEnum::BLU)
 		|| pEntity->m_iTeamNum() == TF_TEAM_RED && !(tGroup.m_iConditions & ConditionsEnum::RED))
 		return false;
@@ -27,12 +30,14 @@ static inline bool ShouldTargetOwner(Group_t& tGroup, int iBit, CBaseEntity* pOw
 	if (!(tGroup.m_iTargets & iBit))
 		return false;
 
-	if (tGroup.m_iConditions & ConditionsEnum::Local && pOwner == pLocal
-		|| tGroup.m_iConditions & ConditionsEnum::Friends && H::Entities.IsFriend(pOwner->entindex())
+	if (tGroup.m_iConditions & ConditionsEnum::Friends && H::Entities.IsFriend(pOwner->entindex())
 		|| tGroup.m_iConditions & ConditionsEnum::Party && H::Entities.InParty(pOwner->entindex())
 		|| tGroup.m_iConditions & ConditionsEnum::Priority && F::PlayerUtils.IsPrioritized(pOwner->entindex())
-		|| tGroup.m_iConditions & ConditionsEnum::Target && pEntity->entindex() == G::AimTarget.m_iEntIndex)
-		return true;
+		|| tGroup.m_iConditions & ConditionsEnum::Target && pEntity->entindex() != G::AimTarget.m_iEntIndex)
+		return false;
+
+	if (pOwner == pLocal)
+		return tGroup.m_iConditions & ConditionsEnum::Local;
 
 	return ShouldTargetTeam(tGroup, iBit, pEntity, pLocal);
 }
